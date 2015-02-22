@@ -5,9 +5,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-import javafx.animation.FadeTransition;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.*;
@@ -29,6 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -38,6 +37,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -51,8 +51,8 @@ import org.controlsfx.control.HyperlinkLabel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
-import software.glare.cid.Status;
 import software.glare.cid.FileType;
+import software.glare.cid.Status;
 import software.glare.cid.process.BasicReportImpl;
 import software.glare.cid.process.ProgressData;
 import software.glare.cid.process.Report;
@@ -118,7 +118,6 @@ public class CIDFx extends Application {
 
         stage.setScene(scene);
 
-
         stage.show();
 
         stage.setMinHeight(stage.getHeight());
@@ -151,8 +150,29 @@ public class CIDFx extends Application {
         private final Menu menuHelp = new Menu("Help");
         private final MenuItem helpMenuItem = new MenuItem("Help", new ImageView("icons/com.iconfinder/tango-icon-library/1423615094_help-browser-16.png"));
         private final MenuItem aboutMenuItem = new MenuItem("About", new ImageView("icons/com.iconfinder/tango-icon-library/1423615052_contact-new-16.png"));
-        private final Label aboutLabel = new Label();
         private final StackPane aboutStackPane = new StackPane();
+        private final StackPane helpStackPane = new StackPane();
+        private final Label aboutHeaderLabel = new Label(UIConstants.MAIN_TITLE);
+        private final HyperlinkLabel aboutLabel = new HyperlinkLabel(
+                "Glare Software™ team:\n" +
+                        "Author - Dmitry Fedorchenko\n" +
+                        "QA Engineer - Tatiana Fedorchenko\n\n" +
+                        "Source code:\n[at GitHub]\n\n" +
+                        "License:\n[GNU GENERAL PUBLIC LICENSE Version 3]");
+        private final Text aboutThanksToText = new Text(("Logback\n\n" +
+                "Commons Collections\n\n" +
+                "Commons IO\n\n" +
+                "Commons Lang\n\n" +
+                "Commons Math\n\n" +
+                "Commons Pool\n\n" +
+                "ControlsFX\n\n" +
+                "FreeMarker\n\n" +
+                "jrawio\n\n" +
+                "SLF4J"));
+        private final HyperlinkLabel aboutFooterLabel = new HyperlinkLabel("[Contact us]");
+        private final TranslateTransition aboutThanksToTransition = new TranslateTransition(new Duration(3200), aboutThanksToText);
+        private ScrollPane thanksToScrollPane;
+        private StackPane maskStackPane;
 
 
         public MainForm(Stage stage) {
@@ -161,6 +181,11 @@ public class CIDFx extends Application {
         }
 
         private void init() {
+            initMainComponents();
+            initAboutComponents();
+        }
+
+        private void initMainComponents() {
             moveRenameBtn.setDisable(true);
             moveRenameBtn.setVisible(false);
             moveRenameInfoLabel.setVisible(false);
@@ -189,17 +214,38 @@ public class CIDFx extends Application {
 
                 }
             });
+        }
 
-            StackPane.setAlignment(aboutLabel, Pos.BOTTOM_CENTER);
-            aboutStackPane.setStyle("-fx-background-color: rgba(237, 188, 0, 0.50);");
+        private void initAboutComponents() {
+
+            /*
+            leftLabel.setOnAction(event -> {
+                Hyperlink link = (Hyperlink) event.getSource();
+                final String str = link == null ? "" : link.getText();
+                switch (str) {
+                    case "here": // do 'here' action
+                        break;
+                    case "exit": // do exit action
+                        break;
+                }
+            });       */
+
+            //StackPane.setAlignment(aboutLabel, Pos.BOTTOM_CENTER);
+            aboutStackPane.setStyle("-fx-background-color: rgba(237, 188, 0, 0.50); -fx-blend-mode: src-atop");
             aboutStackPane.setVisible(false);
+
+            helpStackPane.setStyle("-fx-background-color: rgba(237, 188, 0, 0.50); -fx-blend-mode: lighten");
+            helpStackPane.setVisible(false);
+
+            aboutThanksToTransition.setInterpolator(Interpolator.LINEAR);
+            aboutThanksToTransition.setAutoReverse(true);
+            aboutThanksToTransition.setCycleCount(Timeline.INDEFINITE);
         }
 
         private void postInit(Scene scene) {
             this.scene = scene;
             menuHelp.getItems().addAll(helpMenuItem, aboutMenuItem);
             menuBar.getMenus().addAll(menuHelp);
-
         }
 
         private Pane createMainContent() {
@@ -217,73 +263,64 @@ public class CIDFx extends Application {
             contentGrid.add(getMoveRenameHbox(), 2, 1, 2, 1);
             contentGrid.add(statusBarGrid, 0, 3, 4, 1);
 
-
             contentGrid.setHgrow(extensionsHbox, Priority.ALWAYS);
             contentGrid.setVgrow(treeTableViewVbox, Priority.ALWAYS);
 
             VBox mainContentVBox = new VBox(menuBar, contentGrid, statusBarGrid);
             mainContentVBox.setFillWidth(true);
             mainContentVBox.setVgrow(contentGrid, Priority.ALWAYS);
-            StackPane mainStackPane = new StackPane(mainContentVBox, aboutStackPane);
+            StackPane mainStackPane = new StackPane(mainContentVBox, aboutStackPane, helpStackPane);
 
             aboutStackPane.getChildren().add(getAboutGrid());
-
+            helpStackPane.getChildren().add(getHelpGrid());
 
             return mainStackPane;
         }
 
+        private Node getHelpGrid() {
+            GridPane helpGrid = new GridPane();
+                 return helpGrid;
+        }
+
         private Node getAboutGrid() {
             GridPane aboutGrid = new GridPane();
-            aboutGrid.setMaxSize(300, 300);
+            aboutGrid.setMaxSize(400, 100);
             aboutGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
             setupGridParams(aboutGrid, 16, new Insets(0, 0, 0, 0));
-            aboutGrid.setAlignment(Pos.CENTER);
-            HyperlinkLabel hyperlinkLabel = new HyperlinkLabel("" +
-                    "Author: [Dmitry Fedorchenko]\n" +
-                    "QA Engineer: [Tatiana Fedorchenko]\n" +
-                    "Source code: [at GitHub]\n\n" +
-                    "Support: [Contact us]" +
-                    "Source code: [at GitHub]");
-            hyperlinkLabel.setStyle("-fx-alignment: baseline-center; -fx-text-alignment: center");
+
+            aboutThanksToText.setStyle("-fx-text-alignment: center;");
+
+            HBox headerWrapper = new HBox(aboutHeaderLabel);
+            headerWrapper.setAlignment(Pos.CENTER);
+            HBox footerWrapper = new HBox(aboutFooterLabel);
+            footerWrapper.setAlignment(Pos.CENTER);
+
+            thanksToScrollPane = new ScrollPane(aboutThanksToText);
+            thanksToScrollPane.getStyleClass().addAll("transparentScrollPane");
+
+            maskStackPane = new StackPane();
+            VBox overlayedBackgroundVBox = new VBox();
+            overlayedBackgroundVBox.setStyle("-fx-background-color: linear-gradient(beige, transparent, beige);");
+            maskStackPane.getChildren().addAll(thanksToScrollPane, overlayedBackgroundVBox);
 
 
-            HyperlinkLabel thanksLabel = new HyperlinkLabel("" +
-                    "Thanks to:\n" +
-                    "QA Engineer: [Tatiana Fedorchenko]\n" +
-                    "Source code: [at GitHub]\n\n" +
-                    "Support: [Contact us]" +
-                    "Source code: [at GitHub]");
-            hyperlinkLabel.setStyle("-fx-alignment: baseline-center; -fx-text-alignment: center");
+            aboutGrid.add(headerWrapper, 0, 0, 2, 1);
+            aboutGrid.add(aboutLabel, 0, 1, 1, 2);
+            aboutGrid.add(new Label("Thanks to 3d party software:"), 1, 1, 1, 1);
+            aboutGrid.add(maskStackPane, 1, 2, 1, 1);
+            aboutGrid.add(footerWrapper, 0, 3, 2, 1);
 
-            /* hyperlinkLabel.setOnAction(new EventHandler<ActionEvent>() {
-     public void handle(ActionEvent event) {
-         Hyperlink link = (Hyperlink)event.getSource();
-         final String str = link == null ? "" : link.getText();
-         switch(str) {
-             case "here": // do 'here' action
-                          break;
-             case "exit": // do exit action
-                          break;
-         }
-     }
- });*/
-
-            //hyperlinkLabel.setOn
-            aboutGrid.add(hyperlinkLabel, 0, 0, 1, 1);
-            /*aboutGrid.add(progressBarProgress, 1, 0, 1, 1);
-            aboutGrid.add(progressBar, 2, 0, 1, 1);
-            aboutGrid.setHgrow(progressBar, Priority.NEVER);
-            aboutGrid.setHgrow(statusBarText, Priority.ALWAYS);
-            aboutGrid.setHgrow(progressBarProgress, Priority.NEVER);*/
 
             aboutGrid.getColumnConstraints().addAll(
-                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.CENTER, true)/*,
-                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.RIGHT, false),
-                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.RIGHT, false)*/
+                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.CENTER, true),
+                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.CENTER, true)
             );
 
             aboutGrid.getRowConstraints().addAll(
-                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.CENTER, false)
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.ALWAYS, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.BOTTOM, false)
             );
 
             return aboutGrid;
@@ -318,9 +355,6 @@ public class CIDFx extends Application {
             statusBarGrid.add(statusBarText, 0, 0, 1, 1);
             statusBarGrid.add(progressBarProgress, 1, 0, 1, 1);
             statusBarGrid.add(progressBar, 2, 0, 1, 1);
-            /*progressBarProgress.setMaxWidth(80);
-            progressBarProgress.setMinWidth(80);
-            progressBarProgress.setPrefWidth(80); */
             statusBarGrid.setHgrow(progressBar, Priority.NEVER);
             statusBarGrid.setHgrow(statusBarText, Priority.ALWAYS);
             statusBarGrid.setHgrow(progressBarProgress, Priority.NEVER);
@@ -619,35 +653,45 @@ public class CIDFx extends Application {
             setupScanBtnBehavior();
             setupFilterComboboxesBehaviour();
             setupMoveRenameBtnBehaviour();
-            setupMenuBehaviour();
+            setupOverlayPanesBehaviour();
         }
 
-        private void setupMenuBehaviour() {
-            /*mainForm.helpMenuItem.setOnAction(new EventHandler<ActionEvent>() {
-                @Override
-                public void handle(ActionEvent event) {
+        private void setupOverlayPanesBehaviour() {
+            mainForm.aboutMenuItem.setOnAction(event -> {
+                mainForm.aboutStackPane.setVisible(true);
+                FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.aboutStackPane);
+                ft.setFromValue(0.0);
+                ft.setToValue(1.0);
+                ft.setAutoReverse(false);
 
-                }
-            });*/
-            mainForm.aboutStackPane.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                @Override
-                public void handle(MouseEvent event) {
-                    FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.aboutStackPane);
-                    ft.setFromValue(1.0);
-                    ft.setToValue(0.0);
-                    ft.setAutoReverse(false);
-                    ft.play();
-                    ft.setOnFinished((e) -> {
-                        mainForm.aboutStackPane.setVisible(false);
-                    });
-                }
+                //move text to start
+                mainForm.aboutThanksToText.setY(mainForm.maskStackPane.getBoundsInParent().getMinY());
+                //set movement bounds
+                mainForm.aboutThanksToTransition.setToY(+mainForm.maskStackPane.getHeight()/2-mainForm.aboutThanksToText.getBoundsInLocal().getHeight());
+                mainForm.aboutThanksToTransition.setFromY(+mainForm.maskStackPane.getHeight()/2);
+                mainForm.aboutThanksToTransition.play();
+                ft.play();
             });
-            mainForm.aboutMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+            //hide about pane
+            mainForm.aboutStackPane.setOnMouseClicked(event -> {
+                FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.aboutStackPane);
+                ft.setFromValue(1.0);
+                ft.setToValue(0.0);
+                ft.setAutoReverse(false);
+                ft.play();
+                ft.setOnFinished((e) -> {
+                    mainForm.aboutStackPane.setVisible(false);
+                    mainForm.aboutThanksToTransition.stop();
+                });
+            });
+
+            mainForm.helpMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+                //show about pane
                 @Override
                 public void handle(ActionEvent event) {
-                    //showAsAlert();
-                    mainForm.aboutStackPane.setVisible(true);
-                    FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.aboutStackPane);
+                    mainForm.helpStackPane.setVisible(true);
+                    FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.helpStackPane);
                     ft.setFromValue(0.0);
                     ft.setToValue(1.0);
                     ft.setAutoReverse(false);
@@ -656,17 +700,23 @@ public class CIDFx extends Application {
 
                     });*/
                 }
+            });
 
-                private void showAsAlert() {
-    /*Alert alert = new Alert(Alert.AlertType.INFORMATION);
-    alert.setTitle("");
-    alert.setGraphic(new TextArea("aaaa"));
-    //alert.setHeaderText("header");
-    alert.setGraphic(new Label("graphic"));
-    //alert.setContentText("contnt");
-    alert.show();*/
+            //hide help pane
+            mainForm.helpStackPane.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                @Override
+                public void handle(MouseEvent event) {
+                    FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.helpStackPane);
+                    ft.setFromValue(1.0);
+                    ft.setToValue(0.0);
+                    ft.setAutoReverse(false);
+                    ft.play();
+                    ft.setOnFinished((e) -> {
+                        mainForm.helpStackPane.setVisible(false);
+                    });
                 }
             });
+
         }
 
         private void setupFreeMarkerEngine() throws IOException, URISyntaxException {
