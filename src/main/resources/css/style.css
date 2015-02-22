@@ -1,0 +1,70 @@
+.my-tree-table-row-text-fill .cell {
+    -fx-text-fill: black;
+}
+
+.tree-table-row-bckgnd-empty {
+    -fx-background-color: white;
+}
+
+.tree-table-row-bckgnd-empty:selected {
+    -fx-background-color: white;
+}
+
+.tree-table-row-details-btn {
+    -fx-background-color: rgba(147, 112, 219, 0.12);
+    -fx-border-width: 0;
+    -fx-background-radius: 7px;
+    -fx-background-insets: 2px;
+}
+
+.tree-table-row-details-btn:hover {
+    -fx-background-color: rgba(147, 112, 219, 0.45);
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+}
+
+.tree-table-row-bckgnd-critical {
+    -fx-background-color: rgba(255, 0, 0, 0.50);
+}
+
+.tree-table-row-bckgnd-critical:selected {
+    -fx-background-color: rgba(255, 0, 0, 0.75);
+}
+
+.tree-table-row-bckgnd-warning {
+    -fx-background-color: rgba(255, 127, 80, 0.50);
+}
+
+.tree-table-row-bckgnd-warning:selected {
+    -fx-background-color: rgba(255, 127, 80, 0.75);
+}
+
+.tree-table-row-bckgnd-ok {
+    -fx-background-color: rgba(0, 128, 0, 0.50);
+}
+
+.tree-table-row-bckgnd-ok:selected {
+    -fx-background-color: rgba(0, 128, 0, 0.75);
+}
+
+.tree-table-row-bckgnd-folder {
+    -fx-background-color: white;
+    -fx-cursor: hand;
+}
+
+.tree-table-row-bckgnd-folder:hover {
+    -fx-background-color: white;
+}
+
+.tree-table-row-bckgnd-folder:hover .cell {
+    -fx-text-fill: royalblue;
+    -fx-underline: true;
+}
+
+.tree-table-row-bckgnd-skipped {
+    -fx-background-color: rgba(147, 112, 219, 0.50);
+}
+
+.tree-table-row-bckgnd-skipped:selected {
+    -fx-background-color: rgba(147, 112, 219, 0.75);
+}
