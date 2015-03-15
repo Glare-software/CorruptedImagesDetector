@@ -28,10 +28,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.Clipboard;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
@@ -84,6 +81,12 @@ public class MainFormController {
     private ResultsTreePostProcessor<TreeItem<BytesProcessResult>, BytesProcessResult> resultsTreePostProcessor;
     private Configuration freeMarkerCfg;
     private Stage stage;
+    private ShowHelpEventHandler showHelpEventEventHandler = new ShowHelpEventHandler();
+    private ShowAboutEventHandler showAboutEventEventHandler = new ShowAboutEventHandler();
+    private HideAboutStackPaneEventHandler hideAboutStackPaneEventHandler = new HideAboutStackPaneEventHandler();
+    private HideAboutEventHandler hideAboutEventHandler = new HideAboutEventHandler();
+    private HideHelpStackPaneEventHandler hideHelpStackPaneEventHandler = new HideHelpStackPaneEventHandler();
+    private HideHelpEventHandler hideHelpEventHandler = new HideHelpEventHandler();
 
     public MainFormController(Stage stage) throws IOException, URISyntaxException {
         this.stage = stage;
@@ -100,6 +103,7 @@ public class MainFormController {
         setupFileTypeCheckBoxesBehavior();
         setupFolderTextFieldBehavior();
         setupFileChooserBehavior();
+        setupHelpFormBtnsBehaviour();
     }
 
     private void createOrRestoreFormConfig() {
@@ -130,69 +134,14 @@ public class MainFormController {
 
     private void setupOverlayPanesBehaviour() {
         //show about pane
-        mainForm.aboutMenuItem.setOnAction(event -> {
-            FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.aboutStackPane);
-            ft.setFromValue(0.0);
-            ft.setToValue(1.0);
-            ft.setAutoReverse(false);
-            //move text to start
-            mainForm.aboutThanksToText.setY(mainForm.aboutMaskStackPane.getBoundsInParent().getMinY());
-            //set movement bounds
-            mainForm.aboutThanksToTransition.setToY(+mainForm.aboutMaskStackPane.getHeight() / 2 - mainForm.aboutThanksToText.getBoundsInLocal().getHeight());
-            mainForm.aboutThanksToTransition.setFromY(+mainForm.aboutMaskStackPane.getHeight() / 2);
-            mainForm.aboutThanksToTransition.play();
-            mainForm.aboutStackPane.setVisible(true);
-            ft.play();
-        });
-
+        mainForm.aboutMenuItem.setOnAction(showAboutEventEventHandler);
         //hide about pane
-        mainForm.aboutStackPane.setOnMouseClicked(event -> {
-            FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.aboutStackPane);
-            ft.setFromValue(1.0);
-            ft.setToValue(0.0);
-            ft.setAutoReverse(false);
-            ft.play();
-            ft.setOnFinished((e) -> {
-                mainForm.aboutStackPane.setVisible(false);
-                mainForm.aboutThanksToTransition.stop();
-            });
-        });
+        mainForm.aboutStackPane.setOnMouseClicked(event -> hideAboutEventHandler.hide());
 
         //show help pane
-        mainForm.helpMenuItem.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.helpStackPane);
-                ft.setFromValue(0.0);
-                ft.setToValue(1.0);
-                ft.setAutoReverse(false);
-
-                mainForm.helpStackPane.setVisible(true);
-                getHelpContentForStep(1);
-                ft.play();
-            }
-
-            private void getHelpContentForStep(int i) {
-                CubicCurveWithArrows arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.scanBtn, false);
-                mainForm.helpArrowsStackPane.setAlignment(arrow, Pos.TOP_LEFT);
-                mainForm.helpArrowsStackPane.getChildren().add(arrow);
-            }
-        });
-
+        mainForm.helpMenuItem.setOnAction(showHelpEventEventHandler);
         //hide help pane
-        mainForm.helpStackPane.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.helpStackPane);
-                ft.setFromValue(1.0);
-                ft.setToValue(0.0);
-                ft.setAutoReverse(false);
-                ft.play();
-                ft.setOnFinished((e) -> {
-                    mainForm.helpStackPane.setVisible(false);
-                });
-            }
-        });
+        mainForm.helpStackPane.setOnMouseClicked(event -> hideHelpEventHandler.hide());
     }
 
     private void setupMoveRenameBtnBehaviour() {
@@ -336,6 +285,12 @@ public class MainFormController {
             mainForm.scanBtn.setDisable(true);
         }
         mainForm.scanBtn.setOnAction(scanBtnEventHandler);
+    }
+
+    private void setupHelpFormBtnsBehaviour() {
+        mainForm.helpNextBtn.setOnAction(showHelpEventEventHandler);
+        mainForm.helpPrevBtn.setOnAction(showHelpEventEventHandler);
+        mainForm.helpCloseBtn.setOnAction(hideHelpEventHandler);
     }
 
     private void setupFileTypeCheckBoxesBehavior() {
@@ -776,6 +731,9 @@ public class MainFormController {
         private final StackPane helpArrowsStackPane = new StackPane();
         private final StackPane helpStackPane = new StackPane();
         private final TextArea helpNoteTextArea = new TextArea();
+        private final Button helpPrevBtn = new Button("<<");
+        private final Button helpNextBtn = new Button(">>");
+        private final Button helpCloseBtn = new Button("Close help");
         private final Label aboutHeaderLabel = new Label(UIConstants.MAIN_TITLE);
         private final HyperlinkLabel aboutLabel = new HyperlinkLabel(
                 "Glare Software™ team:\n" +
@@ -793,12 +751,11 @@ public class MainFormController {
                 "FreeMarker\n\n" +
                 "jrawio\n\n" +
                 "SLF4J"));
-        private final HyperlinkLabel aboutFooterLabel = new HyperlinkLabel("[Contact us]");
+        private final Hyperlink aboutFooterLabel = new Hyperlink("Contact us");
         private final TranslateTransition aboutThanksToTransition = new TranslateTransition(new Duration(3200), aboutThanksToText);
         private ScrollPane thanksToScrollPane = new ScrollPane(aboutThanksToText);
         private StackPane aboutMaskStackPane = new StackPane();
         private StackPane mainStackPane = new StackPane();
-
 
         private MainForm() {
             initMenu();
@@ -814,16 +771,22 @@ public class MainFormController {
             GridPane helpGrid = new GridPane();
             helpGrid.setMaxSize(400, 100);
             helpGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
-            setupGridParams(helpGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
-            helpNoteTextArea.setStyle("-fx-text-alignment: center;");
+            setupGridParams(helpGrid, 2);
 
-            helpGrid.add(helpNoteTextArea, 0, 0, 1, 1);
+
+            helpGrid.add(helpNoteTextArea, 0, 0, 3, 1);
+            helpGrid.add(helpPrevBtn, 0, 1, 1, 1);
+            helpGrid.add(helpNextBtn, 1, 1, 1, 1);
+            helpGrid.add(helpCloseBtn, 2, 1, 1, 1);
 
             helpGrid.getColumnConstraints().addAll(
-                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.CENTER, true)
+                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.LEFT, false),
+                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.LEFT, false),
+                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.RIGHT, false)
             );
             helpGrid.getRowConstraints().addAll(
-                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.CENTER, false)
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, true),
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.BOTTOM, false)
             );
 
             helpNoteTextArea.setText("aaa");
@@ -839,7 +802,7 @@ public class MainFormController {
             GridPane aboutGrid = new GridPane();
             aboutGrid.setMaxSize(400, 100);
             aboutGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
-            setupGridParams(aboutGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
+            setupGridParams(aboutGrid, 16);
             aboutThanksToText.setStyle("-fx-text-alignment: center;");
             HBox headerWrapper = new HBox(aboutHeaderLabel);
             headerWrapper.setAlignment(Pos.CENTER);
@@ -877,8 +840,30 @@ public class MainFormController {
         }
 
         private void initHelpComponents() {
+            helpNextBtn.setId("nextBtn");
+            helpPrevBtn.setId("prevBtn");
             helpStackPane.setStyle("-fx-background-color: rgba(237, 188, 0, 0.20);");
             helpStackPane.setVisible(false);
+            helpNoteTextArea.setStyle("-fx-text-alignment: center;");
+            helpNoteTextArea.setEditable(false);
+            helpPrevBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.TAB && event.isShiftDown()) {
+                        helpCloseBtn.requestFocus();
+                        event.consume();
+                    }
+                }
+            });
+            helpCloseBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.TAB && !event.isShiftDown()) {
+                        helpPrevBtn.requestFocus();
+                        event.consume();
+                    }
+                }
+            });
         }
 
         private void initMainComponents() {
@@ -913,9 +898,38 @@ public class MainFormController {
         }
 
         private void initAboutComponents() {
+            aboutFooterLabel.setFocusTraversable(false);
+            aboutFooterLabel.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.TAB) {
+                        event.consume();
+                    }
+                }
+            });
             aboutThanksToTransition.setInterpolator(Interpolator.LINEAR);
             aboutThanksToTransition.setAutoReverse(true);
             aboutThanksToTransition.setCycleCount(Timeline.INDEFINITE);
+
+            helpPrevBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.TAB && event.isShiftDown()) {
+                        helpCloseBtn.requestFocus();
+                        event.consume();
+                    }
+                }
+            });
+            helpCloseBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+                @Override
+                public void handle(KeyEvent event) {
+                    if (event.getCode() == KeyCode.TAB && !event.isShiftDown()) {
+                        helpPrevBtn.requestFocus();
+                        event.consume();
+                    }
+                }
+            });
+
         }
 
 
@@ -925,7 +939,7 @@ public class MainFormController {
 
         private void createMainContent() {
             GridPane mainContentGrid = new GridPane();
-            setupGridParams(mainContentGrid, UIConstants.GAP_STD, UIConstants.INSETS_STD);
+            setupGridParams(mainContentGrid, UIConstants.GAP_STD);
 
             Node extensionsHbox = getExtensionsHbox();
             Node treeTableViewVbox = getTreeTableViewVbox();
@@ -948,7 +962,7 @@ public class MainFormController {
         }
 
 
-        private void setupGridParams(GridPane grid, double gap, javafx.geometry.Insets insets) {
+        private void setupGridParams(GridPane grid, double gap) {
             grid.setHgap(gap);
             grid.setVgap(gap);
             grid.setPadding(UIConstants.INSETS_STD);
@@ -972,7 +986,7 @@ public class MainFormController {
 
         private Node getStatusBarGrid() {
             GridPane statusBarGrid = new GridPane();
-            setupGridParams(statusBarGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
+            setupGridParams(statusBarGrid, 16);
             statusBarGrid.setAlignment(Pos.TOP_LEFT);
             statusBarGrid.add(statusBarText, 0, 0, 1, 1);
             statusBarGrid.add(progressBarProgress, 1, 0, 1, 1);
@@ -1086,7 +1100,7 @@ public class MainFormController {
                                 setGraphic(hBox);
                             } else {
                                 GridPane statusesGrid = new GridPane();
-                                setupGridParams(statusesGrid, 0, new javafx.geometry.Insets(0, 0, 0, 0));
+                                setupGridParams(statusesGrid, 0);
                                 statusesGrid.getRowConstraints().addAll(new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false));
                                 Map<Status, Long> byStatusesMap = treeItem.getValue().getResultPostInfo().getByStatusesMap();
                                 long totalNonFoldersInside = treeItem.getValue().getResultPostInfo().getTotalNonFoldersInside();
@@ -1236,6 +1250,144 @@ public class MainFormController {
                     }
                 }
             }
+        }
+    }
+
+    private class ShowAboutEventHandler implements EventHandler<ActionEvent> {
+        @Override
+        public void handle(ActionEvent event) {
+            mainForm.aboutStackPane.addEventFilter(KeyEvent.KEY_PRESSED, hideAboutStackPaneEventHandler);
+            FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.aboutStackPane);
+            ft.setFromValue(0.0);
+            ft.setToValue(1.0);
+            ft.setAutoReverse(false);
+
+            setupAnimation();
+
+            mainForm.aboutStackPane.setVisible(true);
+            ft.play();
+            mainForm.aboutFooterLabel.requestFocus();
+        }
+
+        private void setupAnimation() {
+            //move text to start
+            mainForm.aboutThanksToText.setY(mainForm.aboutMaskStackPane.getBoundsInParent().getMinY());
+            //set movement bounds
+            mainForm.aboutThanksToTransition.setToY(+mainForm.aboutMaskStackPane.getHeight() / 2 - mainForm.aboutThanksToText.getBoundsInLocal().getHeight());
+            mainForm.aboutThanksToTransition.setFromY(+mainForm.aboutMaskStackPane.getHeight() / 2);
+            mainForm.aboutThanksToTransition.play();
+        }
+    }
+
+    private class ShowHelpEventHandler implements EventHandler<ActionEvent> {
+        private int step = Integer.MIN_VALUE;
+
+        @Override
+        public void handle(ActionEvent event) {
+            mainForm.helpStackPane.addEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
+            if (step == Integer.MIN_VALUE) {
+                step = 0;
+            }
+            showHelpContentForStep(step);
+            if (event.getSource() instanceof Node) {
+                Node sourceNode = (Node) event.getSource();
+                if (sourceNode.getId() != null) {
+                    if (sourceNode.getId() == "nextBtn") {
+                        step++;
+                        mainForm.helpNextBtn.requestFocus();
+                    } else if (sourceNode.getId() == "prevBtn") {
+                        step = Math.max(0, --step);
+                        mainForm.helpPrevBtn.requestFocus();
+                    }
+                }
+            } else {
+                FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.helpStackPane);
+                ft.setFromValue(0.0);
+                ft.setToValue(1.0);
+                ft.setAutoReverse(false);
+                mainForm.helpStackPane.setVisible(true);
+                mainForm.helpNextBtn.requestFocus();
+                ft.play();
+            }
+
+
+        }
+
+        private void showHelpContentForStep(int i) {
+            CubicCurveWithArrows arrow = null;
+            mainForm.helpArrowsStackPane.getChildren().clear();
+            switch (i) {
+                case 1:
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.scanBtn, false);
+                    mainForm.helpNoteTextArea.setText("1 step=" + step);
+                    break;
+                case 2:
+                    mainForm.helpNoteTextArea.setText("2 step=" + step);
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.aboutStackPane, false);
+                    break;
+                default:
+                    mainForm.helpNoteTextArea.setText("3 def step=" + step);
+            }
+            if (arrow != null) {
+                mainForm.helpArrowsStackPane.setAlignment(arrow, Pos.TOP_LEFT);
+                mainForm.helpArrowsStackPane.getChildren().add(arrow);
+            }
+        }
+    }
+
+    private class HideAboutStackPaneEventHandler implements EventHandler<KeyEvent> {
+        @Override
+        public void handle(KeyEvent event) {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                hideAboutEventHandler.hide();
+            }
+        }
+    }
+
+    private class HideAboutEventHandler implements EventHandler<ActionEvent> {
+        @Override
+        public void handle(ActionEvent event) {
+            hide();
+        }
+
+        public void hide(){
+            mainForm.aboutStackPane.removeEventFilter(KeyEvent.KEY_PRESSED, hideAboutStackPaneEventHandler);
+            FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.aboutStackPane);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setAutoReverse(false);
+            ft.play();
+            ft.setOnFinished((e) -> {
+                mainForm.aboutStackPane.setVisible(false);
+            });
+        }
+    }
+
+    private class HideHelpStackPaneEventHandler implements EventHandler<KeyEvent> {
+        @Override
+        public void handle(KeyEvent event) {
+            if (event.getCode() == KeyCode.ESCAPE) {
+                hideHelpEventHandler.hide();
+            }
+        }
+    }
+
+    private class HideHelpEventHandler implements EventHandler<ActionEvent> {
+        @Override
+        public void handle(ActionEvent event) {
+               hide();
+        }
+
+        public void hide(){
+            mainForm.helpStackPane.removeEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
+            FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.helpStackPane);
+            ft.setFromValue(1.0);
+            ft.setToValue(0.0);
+            ft.setAutoReverse(false);
+            ft.play();
+            ft.setOnFinished((e) -> {
+                mainForm.helpStackPane.setVisible(false);
+            });
         }
     }
 }

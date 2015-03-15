@@ -1,6 +1,5 @@
 package software.glare.cid.ui;
 
-import javafx.beans.binding.DoubleBinding;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -54,9 +53,9 @@ public class CubicCurveWithArrows extends Group {
 
         double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
         //backShape is used for absolute positioning
-        Rectangle backShape = new Rectangle(Math.max(sceneFromMax.getX(), sceneToMax.getX()), Math.max(sceneFromMax.getY(), sceneToMax.getY()));
+        Rectangle backShape = new Rectangle(from.getScene().getWidth(), from.getScene().getHeight());
 
-        backShape.widthProperty().bind(new DoubleBinding() {
+        /*backShape.widthProperty().bind(new DoubleBinding() {
             {
                 super.bind(from.boundsInLocalProperty());
             }
@@ -65,8 +64,8 @@ public class CubicCurveWithArrows extends Group {
             protected double computeValue() {
                 return 0;
             }
-        });
-        backShape.setStyle("-fx-fill: chartreuse; -fx-opacity: 0.2");
+        });*/
+        backShape.setStyle("-fx-fill: transparent");
         getChildren().addAll(backShape, curve, new Arrow(curve, 1f, arrowShape));
         if (bidirectional) {
             getChildren().add(new Arrow(curve, 0f, arrowShape));
