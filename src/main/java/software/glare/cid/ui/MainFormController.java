@@ -129,18 +129,19 @@ public class MainFormController {
     }
 
     private void setupOverlayPanesBehaviour() {
+        //show about pane
         mainForm.aboutMenuItem.setOnAction(event -> {
-            mainForm.aboutStackPane.setVisible(true);
             FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.aboutStackPane);
             ft.setFromValue(0.0);
             ft.setToValue(1.0);
             ft.setAutoReverse(false);
             //move text to start
-            mainForm.aboutThanksToText.setY(mainForm.maskStackPane.getBoundsInParent().getMinY());
+            mainForm.aboutThanksToText.setY(mainForm.aboutMaskStackPane.getBoundsInParent().getMinY());
             //set movement bounds
-            mainForm.aboutThanksToTransition.setToY(+mainForm.maskStackPane.getHeight() / 2 - mainForm.aboutThanksToText.getBoundsInLocal().getHeight());
-            mainForm.aboutThanksToTransition.setFromY(+mainForm.maskStackPane.getHeight() / 2);
+            mainForm.aboutThanksToTransition.setToY(+mainForm.aboutMaskStackPane.getHeight() / 2 - mainForm.aboutThanksToText.getBoundsInLocal().getHeight());
+            mainForm.aboutThanksToTransition.setFromY(+mainForm.aboutMaskStackPane.getHeight() / 2);
             mainForm.aboutThanksToTransition.play();
+            mainForm.aboutStackPane.setVisible(true);
             ft.play();
         });
 
@@ -157,25 +158,24 @@ public class MainFormController {
             });
         });
 
+        //show help pane
         mainForm.helpMenuItem.setOnAction(new EventHandler<ActionEvent>() {
-            //show help pane
             @Override
             public void handle(ActionEvent event) {
-                CubicCurveWithArrows e = new CubicCurveWithArrows(mainForm.scanBtn, mainForm.treeTableView);
-                mainForm.helpStackPane.setAlignment(e, Pos.TOP_LEFT);
-                mainForm.helpStackPane.getChildren().clear();
-                mainForm.helpStackPane.getChildren().add(e);
-                mainForm.helpStackPane.setVisible(true);
                 FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.helpStackPane);
                 ft.setFromValue(0.0);
                 ft.setToValue(1.0);
                 ft.setAutoReverse(false);
+
+                mainForm.helpStackPane.setVisible(true);
+                getHelpContentForStep(1);
                 ft.play();
+            }
 
-                //e.changeParent(mainForm.scanBtn, mainForm.helpStackPane);
-                /*ft.setOnFinished((e) -> {
-
-                });*/
+            private void getHelpContentForStep(int i) {
+                CubicCurveWithArrows arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.scanBtn, false);
+                mainForm.helpArrowsStackPane.setAlignment(arrow, Pos.TOP_LEFT);
+                mainForm.helpArrowsStackPane.getChildren().add(arrow);
             }
         });
 
@@ -763,7 +763,6 @@ public class MainFormController {
         private final ComboBox<Status> statusFilterComboBox = new ComboBox<>(FXCollections.observableArrayList(getStatusFilterComboboxItems()));
         private final ComboBox<Clause> clauseFilterComboBox = new ComboBox<>(new ObservableListWrapper<>(Arrays.asList(Clause.values())));
         private final Button moveRenameBtn = new Button("Rename...");
-        //private final Button debugBtn = new Button("debug");
         private final TreeTableView treeTableView = new TreeTableView();
         private final Label moveRenameInfoLabel = new Label("Please, select more meaningful status than SKIPPED for activating 'Rename' button");
         private final Label statusBarText = new Label("Select folder and press scan button");
@@ -774,7 +773,9 @@ public class MainFormController {
         private final MenuItem helpMenuItem = new MenuItem("Help", new ImageView("icons/com.iconfinder/tango-icon-library/1423615094_help-browser-16.png"));
         private final MenuItem aboutMenuItem = new MenuItem("About", new ImageView("icons/com.iconfinder/tango-icon-library/1423615052_contact-new-16.png"));
         private final StackPane aboutStackPane = new StackPane();
+        private final StackPane helpArrowsStackPane = new StackPane();
         private final StackPane helpStackPane = new StackPane();
+        private final TextArea helpNoteTextArea = new TextArea();
         private final Label aboutHeaderLabel = new Label(UIConstants.MAIN_TITLE);
         private final HyperlinkLabel aboutLabel = new HyperlinkLabel(
                 "Glare Software™ team:\n" +
@@ -794,18 +795,85 @@ public class MainFormController {
                 "SLF4J"));
         private final HyperlinkLabel aboutFooterLabel = new HyperlinkLabel("[Contact us]");
         private final TranslateTransition aboutThanksToTransition = new TranslateTransition(new Duration(3200), aboutThanksToText);
-        private ScrollPane thanksToScrollPane;
-        private StackPane maskStackPane;
+        private ScrollPane thanksToScrollPane = new ScrollPane(aboutThanksToText);
+        private StackPane aboutMaskStackPane = new StackPane();
         private StackPane mainStackPane = new StackPane();
 
 
         private MainForm() {
-            menuHelp.getItems().addAll(helpMenuItem, aboutMenuItem);
-            menuBar.getMenus().addAll(menuHelp);
+            initMenu();
             initMainComponents();
             initAboutComponents();
             initHelpComponents();
             createMainContent();
+            createAboutContent();
+            createHelpContent();
+        }
+
+        private void createHelpContent() {
+            GridPane helpGrid = new GridPane();
+            helpGrid.setMaxSize(400, 100);
+            helpGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
+            setupGridParams(helpGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
+            helpNoteTextArea.setStyle("-fx-text-alignment: center;");
+
+            helpGrid.add(helpNoteTextArea, 0, 0, 1, 1);
+
+            helpGrid.getColumnConstraints().addAll(
+                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.CENTER, true)
+            );
+            helpGrid.getRowConstraints().addAll(
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.CENTER, false)
+            );
+
+            helpNoteTextArea.setText("aaa");
+
+            helpStackPane.getChildren().add(helpArrowsStackPane);
+            helpStackPane.getChildren().add(helpGrid);
+            helpStackPane.setVisible(false);
+            mainStackPane.getChildren().add(helpStackPane);
+            //helpStackPane content created dynamically every time
+        }
+
+        private void createAboutContent() {
+            GridPane aboutGrid = new GridPane();
+            aboutGrid.setMaxSize(400, 100);
+            aboutGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
+            setupGridParams(aboutGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
+            aboutThanksToText.setStyle("-fx-text-alignment: center;");
+            HBox headerWrapper = new HBox(aboutHeaderLabel);
+            headerWrapper.setAlignment(Pos.CENTER);
+            HBox footerWrapper = new HBox(aboutFooterLabel);
+            footerWrapper.setAlignment(Pos.CENTER);
+            thanksToScrollPane.getStyleClass().addAll("transparentScrollPane");
+            VBox overlayedBackgroundVBox = new VBox();
+            overlayedBackgroundVBox.setStyle("-fx-background-color: linear-gradient(beige, transparent, beige);");
+            aboutMaskStackPane.getChildren().addAll(thanksToScrollPane, overlayedBackgroundVBox);
+            aboutGrid.add(headerWrapper, 0, 0, 2, 1);
+            aboutGrid.add(aboutLabel, 0, 1, 1, 2);
+            aboutGrid.add(new Label("Thanks to 3d party software:"), 1, 1, 1, 1);
+            aboutGrid.add(aboutMaskStackPane, 1, 2, 1, 1);
+            aboutGrid.add(footerWrapper, 0, 3, 2, 1);
+            aboutGrid.getColumnConstraints().addAll(
+                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.CENTER, true),
+                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.CENTER, true)
+            );
+            aboutGrid.getRowConstraints().addAll(
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.ALWAYS, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
+                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.BOTTOM, false)
+            );
+
+            aboutStackPane.getChildren().add(aboutGrid);
+            aboutStackPane.setVisible(false);
+            mainStackPane.getChildren().add(aboutStackPane);
+        }
+
+        private void initMenu() {
+            menuHelp.getItems().addAll(helpMenuItem, aboutMenuItem);
+            menuBar.getMenus().addAll(menuHelp);
+
         }
 
         private void initHelpComponents() {
@@ -855,84 +923,36 @@ public class MainFormController {
             return mainStackPane;
         }
 
-        private Pane createMainContent() {
-            GridPane contentGrid = new GridPane();
-            setupGridParams(contentGrid, UIConstants.GAP_STD, UIConstants.INSETS_STD);
+        private void createMainContent() {
+            GridPane mainContentGrid = new GridPane();
+            setupGridParams(mainContentGrid, UIConstants.GAP_STD, UIConstants.INSETS_STD);
 
             Node extensionsHbox = getExtensionsHbox();
             Node treeTableViewVbox = getTreeTableViewVbox();
             Node statusBarGrid = getStatusBarGrid();
 
-            contentGrid.add(extensionsHbox, 0, 0);
-            contentGrid.add(getSelectPathHbox(), 3, 0);
-            contentGrid.add(treeTableViewVbox, 0, 2, 4, 1);
-            contentGrid.add(getFilterHbox(), 0, 1, 1, 1);
-            contentGrid.add(getMoveRenameHbox(), 2, 1, 2, 1);
-            contentGrid.add(statusBarGrid, 0, 3, 4, 1);
+            mainContentGrid.add(extensionsHbox, 0, 0);
+            mainContentGrid.add(getSelectPathHbox(), 3, 0);
+            mainContentGrid.add(treeTableViewVbox, 0, 2, 4, 1);
+            mainContentGrid.add(getFilterHbox(), 0, 1, 1, 1);
+            mainContentGrid.add(getMoveRenameHbox(), 2, 1, 2, 1);
+            mainContentGrid.add(statusBarGrid, 0, 3, 4, 1);
 
-            contentGrid.setHgrow(extensionsHbox, Priority.ALWAYS);
-            contentGrid.setVgrow(treeTableViewVbox, Priority.ALWAYS);
+            mainContentGrid.setHgrow(extensionsHbox, Priority.ALWAYS);
+            mainContentGrid.setVgrow(treeTableViewVbox, Priority.ALWAYS);
 
-            VBox mainContentVBox = new VBox(menuBar, contentGrid, statusBarGrid);
+            VBox mainContentVBox = new VBox(menuBar, mainContentGrid, statusBarGrid);
             mainContentVBox.setFillWidth(true);
-            mainContentVBox.setVgrow(contentGrid, Priority.ALWAYS);
-            mainStackPane.getChildren().addAll(mainContentVBox, aboutStackPane, helpStackPane);
-
-            aboutStackPane.getChildren().add(getAboutGrid());
-
-            return mainStackPane;
+            mainContentVBox.setVgrow(mainContentGrid, Priority.ALWAYS);
+            mainStackPane.getChildren().add(mainContentVBox);
         }
 
 
-        private Node getAboutGrid() {
-            GridPane aboutGrid = new GridPane();
-            aboutGrid.setMaxSize(400, 100);
-            aboutGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
-            setupGridParams(aboutGrid, 16, new javafx.geometry.Insets(0, 0, 0, 0));
-
-            aboutThanksToText.setStyle("-fx-text-alignment: center;");
-
-            HBox headerWrapper = new HBox(aboutHeaderLabel);
-            headerWrapper.setAlignment(Pos.CENTER);
-            HBox footerWrapper = new HBox(aboutFooterLabel);
-            footerWrapper.setAlignment(Pos.CENTER);
-
-            thanksToScrollPane = new ScrollPane(aboutThanksToText);
-            thanksToScrollPane.getStyleClass().addAll("transparentScrollPane");
-
-            maskStackPane = new StackPane();
-            VBox overlayedBackgroundVBox = new VBox();
-            overlayedBackgroundVBox.setStyle("-fx-background-color: linear-gradient(beige, transparent, beige);");
-            maskStackPane.getChildren().addAll(thanksToScrollPane, overlayedBackgroundVBox);
-
-
-            aboutGrid.add(headerWrapper, 0, 0, 2, 1);
-            aboutGrid.add(aboutLabel, 0, 1, 1, 2);
-            aboutGrid.add(new Label("Thanks to 3d party software:"), 1, 1, 1, 1);
-            aboutGrid.add(maskStackPane, 1, 2, 1, 1);
-            aboutGrid.add(footerWrapper, 0, 3, 2, 1);
-
-
-            aboutGrid.getColumnConstraints().addAll(
-                    new ColumnConstraints(-1, -1, -1, Priority.ALWAYS, HPos.CENTER, true),
-                    new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.CENTER, true)
-            );
-
-            aboutGrid.getRowConstraints().addAll(
-                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
-                    new RowConstraints(-1, -1, -1, Priority.ALWAYS, VPos.TOP, false),
-                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.TOP, false),
-                    new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.BOTTOM, false)
-            );
-
-            return aboutGrid;
-        }
-
-        private void setupGridParams(GridPane contentGrid, double gap, javafx.geometry.Insets insets) {
-            contentGrid.setHgap(gap);
-            contentGrid.setVgap(gap);
-            contentGrid.setPadding(UIConstants.INSETS_STD);
-            contentGrid.setAlignment(Pos.CENTER);
+        private void setupGridParams(GridPane grid, double gap, javafx.geometry.Insets insets) {
+            grid.setHgap(gap);
+            grid.setVgap(gap);
+            grid.setPadding(UIConstants.INSETS_STD);
+            grid.setAlignment(Pos.CENTER);
         }
 
         private Node getTreeTableViewVbox() {

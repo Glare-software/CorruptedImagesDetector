@@ -15,7 +15,7 @@ import javafx.scene.transform.Rotate;
  */
 public class CubicCurveWithArrows extends Group {
 
-    public CubicCurveWithArrows(Node from, Node to) {
+    public CubicCurveWithArrows(Node from, Node to, boolean bidirectional) {
 
 
         Point2D localFromMin = new Point2D(
@@ -53,7 +53,9 @@ public class CubicCurveWithArrows extends Group {
         );
 
         double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
-        Rectangle backShape = new Rectangle(Math.max(sceneFromMax.getX(),sceneToMax.getX()),Math.max(sceneFromMax.getY(),sceneToMax.getY()));
+        //backShape is used for absolute positioning
+        Rectangle backShape = new Rectangle(Math.max(sceneFromMax.getX(), sceneToMax.getX()), Math.max(sceneFromMax.getY(), sceneToMax.getY()));
+
         backShape.widthProperty().bind(new DoubleBinding() {
             {
                 super.bind(from.boundsInLocalProperty());
@@ -64,9 +66,14 @@ public class CubicCurveWithArrows extends Group {
                 return 0;
             }
         });
-        backShape.setStyle("-fx-fill: lightskyblue; -fx-opacity: 0.5");
-        getChildren().addAll(backShape, curve, new Arrow(curve, 0f, arrowShape), new Arrow(curve, 1f, arrowShape));
+        backShape.setStyle("-fx-fill: chartreuse; -fx-opacity: 0.2");
+        getChildren().addAll(backShape, curve, new Arrow(curve, 1f, arrowShape));
+        if (bidirectional) {
+            getChildren().add(new Arrow(curve, 0f, arrowShape));
+        }
     }
+
+
 
     private static Point2D getAvgPoint2D(Point2D min, Point2D max) {
         return new Point2D(min.getX() + (max.getX() - min.getX()) / 2, min.getY() + (max.getY() - min.getY()) / 2);
@@ -89,97 +96,98 @@ public class CubicCurveWithArrows extends Group {
         curve.setFill(Color.TRANSPARENT);
         return curve;
     }
-}
 
-class Arrow extends Polygon {
+    class Arrow extends Polygon {
 
-    private float t;
-    private CubicCurve curve;
-    private Rotate rz;
+        private float t;
+        private CubicCurve curve;
+        private Rotate rz;
 
-    public Arrow(CubicCurve curve, float t, double... arrowShape) {
-        super(arrowShape);
-        this.curve = curve;
-        this.t = t;
-        init();
-    }
-
-    private void init() {
-
-        setFill(Color.web("#ff0900"));
-
-        rz = new Rotate();
-        {
-            rz.setAxis(Rotate.Z_AXIS);
+        public Arrow(CubicCurve curve, float t, double... arrowShape) {
+            super(arrowShape);
+            this.curve = curve;
+            this.t = t;
+            init();
         }
-        getTransforms().addAll(rz);
 
-        update();
-    }
+        private void init() {
 
-    public void update() {
-        double size = Math.max(curve.getBoundsInLocal().getWidth(), curve.getBoundsInLocal().getHeight());
-        double scale = size / 4d;
+            setFill(Color.web("#ff0900"));
 
-        Point2D ori = eval(curve, t);
-        Point2D tan = evalDt(curve, t).normalize().multiply(scale);
+            rz = new Rotate();
+            {
+                rz.setAxis(Rotate.Z_AXIS);
+            }
+            getTransforms().addAll(rz);
 
-        setTranslateX(ori.getX());
-        setTranslateY(ori.getY());
+            update();
+        }
 
-        double angle = Math.atan2(tan.getY(), tan.getX());
+        public void update() {
+            double size = Math.max(curve.getBoundsInLocal().getWidth(), curve.getBoundsInLocal().getHeight());
+            double scale = size / 4d;
 
-        angle = Math.toDegrees(angle);
+            Point2D ori = eval(curve, t);
+            Point2D tan = evalDt(curve, t).normalize().multiply(scale);
 
-        // arrow origin is top => apply offset
-        double offset = -90;
-        if (t > 0.5)
-            offset = +90;
+            setTranslateX(ori.getX());
+            setTranslateY(ori.getY());
 
-        rz.setAngle(angle + offset);
+            double angle = Math.atan2(tan.getY(), tan.getX());
 
-    }
+            angle = Math.toDegrees(angle);
 
-    /**
-     * Evaluate the cubic curve at a parameter 0<=t<=1, returns a Point2D
-     *
-     * @param c the CubicCurve
-     * @param t param between 0 and 1
-     * @return a Point2D
-     */
-    private Point2D eval(CubicCurve c, float t) {
-        Point2D p = new Point2D(Math.pow(1 - t, 3) * c.getStartX() +
-                3 * t * Math.pow(1 - t, 2) * c.getControlX1() +
-                3 * (1 - t) * t * t * c.getControlX2() +
-                Math.pow(t, 3) * c.getEndX(),
-                Math.pow(1 - t, 3) * c.getStartY() +
-                        3 * t * Math.pow(1 - t, 2) * c.getControlY1() +
-                        3 * (1 - t) * t * t * c.getControlY2() +
-                        Math.pow(t, 3) * c.getEndY());
-        return p;
-    }
+            // arrow origin is top => apply offset
+            double offset = -90;
+            if (t > 0.5)
+                offset = +90;
 
-    /**
-     * Evaluate the tangent of the cubic curve at a parameter 0<=t<=1, returns a Point2D
-     *
-     * @param c the CubicCurve
-     * @param t param between 0 and 1
-     * @return a Point2D
-     */
-    private Point2D evalDt(CubicCurve c, float t) {
-        Point2D p = new Point2D(-3 * Math.pow(1 - t, 2) * c.getStartX() +
-                3 * (Math.pow(1 - t, 2) - 2 * t * (1 - t)) * c.getControlX1() +
-                3 * ((1 - t) * 2 * t - t * t) * c.getControlX2() +
-                3 * Math.pow(t, 2) * c.getEndX(),
-                -3 * Math.pow(1 - t, 2) * c.getStartY() +
-                        3 * (Math.pow(1 - t, 2) - 2 * t * (1 - t)) * c.getControlY1() +
-                        3 * ((1 - t) * 2 * t - t * t) * c.getControlY2() +
-                        3 * Math.pow(t, 2) * c.getEndY());
-        return p;
+            rz.setAngle(angle + offset);
+
+        }
+
+        /**
+         * Evaluate the cubic curve at a parameter 0<=t<=1, returns a Point2D
+         *
+         * @param c the CubicCurve
+         * @param t param between 0 and 1
+         * @return a Point2D
+         */
+        private Point2D eval(CubicCurve c, float t) {
+            Point2D p = new Point2D(Math.pow(1 - t, 3) * c.getStartX() +
+                    3 * t * Math.pow(1 - t, 2) * c.getControlX1() +
+                    3 * (1 - t) * t * t * c.getControlX2() +
+                    Math.pow(t, 3) * c.getEndX(),
+                    Math.pow(1 - t, 3) * c.getStartY() +
+                            3 * t * Math.pow(1 - t, 2) * c.getControlY1() +
+                            3 * (1 - t) * t * t * c.getControlY2() +
+                            Math.pow(t, 3) * c.getEndY());
+            return p;
+        }
+
+        /**
+         * Evaluate the tangent of the cubic curve at a parameter 0<=t<=1, returns a Point2D
+         *
+         * @param c the CubicCurve
+         * @param t param between 0 and 1
+         * @return a Point2D
+         */
+        private Point2D evalDt(CubicCurve c, float t) {
+            Point2D p = new Point2D(-3 * Math.pow(1 - t, 2) * c.getStartX() +
+                    3 * (Math.pow(1 - t, 2) - 2 * t * (1 - t)) * c.getControlX1() +
+                    3 * ((1 - t) * 2 * t - t * t) * c.getControlX2() +
+                    3 * Math.pow(t, 2) * c.getEndX(),
+                    -3 * Math.pow(1 - t, 2) * c.getStartY() +
+                            3 * (Math.pow(1 - t, 2) - 2 * t * (1 - t)) * c.getControlY1() +
+                            3 * ((1 - t) * 2 * t - t * t) * c.getControlY2() +
+                            3 * Math.pow(t, 2) * c.getEndY());
+            return p;
+        }
+
+
     }
 
 
 
 }
-
 
