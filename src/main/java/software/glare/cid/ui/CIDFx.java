@@ -20,7 +20,7 @@ public class CIDFx extends Application {
         SLF4JBridgeHandler.removeHandlersForRootLogger();  // (since SLF4J 1.6.5)
         SLF4JBridgeHandler.install();
 
-        Scene scene = new Scene(new MainFormController(stage).getMainForm().getMainStackPane());
+        Scene scene = new Scene(new MainFormController(this, stage).getMainForm().getMainStackPane());
         scene.getStylesheets().add("css/style.css");
         stage.setScene(scene);
         stage.show();

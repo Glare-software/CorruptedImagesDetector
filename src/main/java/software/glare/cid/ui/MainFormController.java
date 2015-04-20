@@ -6,6 +6,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import javafx.animation.*;
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ChangeListener;
@@ -59,6 +60,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -76,6 +78,7 @@ import java.util.stream.Collectors;
 public class MainFormController {
     private final Logger log = LoggerFactory.getLogger(MainFormController.class);
     private final MainForm mainForm;
+    private final Application application;
     private FormConfigController formConfigController;
     private FormConfig formConfig;
     private ScanBtnEventHandler scanBtnEventHandler;
@@ -89,7 +92,8 @@ public class MainFormController {
     private HideHelpStackPaneEventHandler hideHelpStackPaneEventHandler = new HideHelpStackPaneEventHandler();
     private HideHelpEventHandler hideHelpEventHandler = new HideHelpEventHandler();
 
-    public MainFormController(Stage stage) throws IOException, URISyntaxException {
+    public MainFormController(Application app, Stage stage) throws IOException, URISyntaxException {
+        this.application = app;
         this.stage = stage;
         this.mainForm = new MainForm();
         this.scanBtnEventHandler = new ScanBtnEventHandler();
@@ -708,6 +712,10 @@ public class MainFormController {
     }
 
     class MainForm {
+        public static final String GNU_GENERAL_PUBLIC_LICENSE_VERSION_3 = "GNU GENERAL PUBLIC LICENSE Version 3";
+        public static final String AT_GIT_HUB = "at GitHub";
+        public static final String URL_GITHUB = "https://github.com/Glare-software/CorruptedImagesDetector";
+        public static final String URL_GNUGPL3 = "https://www.gnu.org/copyleft/gpl.html";
         private final Button scanBtn = new Button("Start scan");
         private final CheckBox jpgCheckBox = new CheckBox(FileType.JPG.getExtensions()[0]);
         private final CheckBox gifCheckBox = new CheckBox(FileType.GIF.getExtensions()[0]);
@@ -740,8 +748,8 @@ public class MainFormController {
                 "Glare Software™ team:\n" +
                         "Author - Dmitry Fedorchenko\n" +
                         "QA Engineer - Tatiana Fedorchenko\n\n" +
-                        "Source code:\n[at GitHub]\n\n" +
-                        "License:\n[GNU GENERAL PUBLIC LICENSE Version 3]");
+                        "Source code:\n[" + AT_GIT_HUB + "]\n\n" +
+                        "License:\n[" + GNU_GENERAL_PUBLIC_LICENSE_VERSION_3+"]");
         private final Text aboutThanksToText = new Text(("Logback\n\n" +
                 "Commons Collections\n\n" +
                 "Commons IO\n\n" +
@@ -753,6 +761,7 @@ public class MainFormController {
                 "jrawio\n\n" +
                 "SLF4J"));
         private final Hyperlink aboutFooterLabel = new Hyperlink("Contact us");
+        private final String aboutFooterURL = "https://github.com/Glare-software";
         private final TranslateTransition aboutThanksToTransition = new TranslateTransition(new Duration(3200), aboutThanksToText);
         private ScrollPane thanksToScrollPane = new ScrollPane(aboutThanksToText);
         private StackPane aboutMaskStackPane = new StackPane();
@@ -903,6 +912,25 @@ public class MainFormController {
         }
 
         private void initAboutComponents() {
+            aboutLabel.setOnAction(new EventHandler<ActionEvent>() {
+                public void handle(ActionEvent event) {
+                    Hyperlink link = (Hyperlink) event.getSource();
+                    final String str = link == null ? "" : link.getText();
+                    switch (str) {
+                        case AT_GIT_HUB: // do 'here' action
+                            openURL(URL_GITHUB);
+                            break;
+                        case GNU_GENERAL_PUBLIC_LICENSE_VERSION_3: // do exit action
+                            openURL(URL_GNUGPL3);
+                            break;
+                    }
+
+
+                }
+            });
+            aboutFooterLabel.setOnAction(event -> {
+                openURL(aboutFooterURL);
+            });
             aboutFooterLabel.setFocusTraversable(false);
             aboutFooterLabel.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
                 @Override
@@ -935,6 +963,16 @@ public class MainFormController {
                 }
             });
 
+        }
+
+        private void openURL(String urlString) {
+            try {
+                Desktop.getDesktop().browse(URI.create(urlString));
+
+                //HostServicesFactory.getInstance(application).showDocument(aboutFooterURL);
+            } catch (IOException e) {
+                log.error("Unable to open {} {}", urlString, ExceptionUtils.getStackTrace(e));
+            }
         }
 
 
