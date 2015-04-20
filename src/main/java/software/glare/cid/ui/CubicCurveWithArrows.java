@@ -72,6 +72,49 @@ public class CubicCurveWithArrows extends Group {
         }
     }
 
+    public CubicCurveWithArrows(Node from, Point2D to, boolean bidirectional) {
+
+
+        Point2D localFromMin = new Point2D(
+                from.getBoundsInLocal().getMinX(),
+                from.getBoundsInLocal().getMinY()
+        );
+
+        Point2D localFromMax = new Point2D(
+                from.getBoundsInLocal().getMaxX(),
+                from.getBoundsInLocal().getMaxY()
+        );
+
+        Point2D sceneFromMin = from.localToScene(localFromMin);
+        Point2D sceneFromMax = from.localToScene(localFromMax);
+
+        Point2D sceneFromAvg = getAvgPoint2D(sceneFromMin, sceneFromMax);
+        CubicCurve curve = createCurve(
+                sceneFromAvg,
+                to
+        );
+
+        double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
+        //backShape is used for absolute positioning
+        Rectangle backShape = new Rectangle(from.getScene().getWidth(), from.getScene().getHeight());
+
+        /*backShape.widthProperty().bind(new DoubleBinding() {
+            {
+                super.bind(from.boundsInLocalProperty());
+            }
+
+            @Override
+            protected double computeValue() {
+                return 0;
+            }
+        });*/
+        backShape.setStyle("-fx-fill: transparent");
+        getChildren().addAll(backShape, curve, new Arrow(curve, 1f, arrowShape));
+        if (bidirectional) {
+            getChildren().add(new Arrow(curve, 0f, arrowShape));
+        }
+    }
+
 
 
     private static Point2D getAvgPoint2D(Point2D min, Point2D max) {

@@ -15,6 +15,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -756,6 +757,8 @@ public class MainFormController {
         private ScrollPane thanksToScrollPane = new ScrollPane(aboutThanksToText);
         private StackPane aboutMaskStackPane = new StackPane();
         private StackPane mainStackPane = new StackPane();
+        private HBox extensionsHbox;
+        private Label extensionsLbl;
 
         private MainForm() {
             initMenu();
@@ -770,14 +773,14 @@ public class MainFormController {
         private void createHelpContent() {
             GridPane helpGrid = new GridPane();
             helpGrid.setMaxSize(400, 100);
-            helpGrid.setStyle("-fx-background-color: beige; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
-            setupGridParams(helpGrid, 2);
+            helpGrid.setStyle("-fx-background-color: transparent; -fx-effect: dropshadow(two-pass-box, #eddeb7, 7, 0.2, 4, 4);");
+            setupGridParams(helpGrid, 5);
 
 
             helpGrid.add(helpNoteTextArea, 0, 0, 3, 1);
             helpGrid.add(helpPrevBtn, 0, 1, 1, 1);
             helpGrid.add(helpNextBtn, 1, 1, 1, 1);
-            helpGrid.add(helpCloseBtn, 2, 1, 1, 1);
+            //helpGrid.add(helpCloseBtn, 2, 1, 1, 1);
 
             helpGrid.getColumnConstraints().addAll(
                     new ColumnConstraints(-1, -1, -1, Priority.NEVER, HPos.LEFT, false),
@@ -789,7 +792,6 @@ public class MainFormController {
                     new RowConstraints(-1, -1, -1, Priority.NEVER, VPos.BOTTOM, false)
             );
 
-            helpNoteTextArea.setText("aaa");
 
             helpStackPane.getChildren().add(helpArrowsStackPane);
             helpStackPane.getChildren().add(helpGrid);
@@ -808,7 +810,7 @@ public class MainFormController {
             headerWrapper.setAlignment(Pos.CENTER);
             HBox footerWrapper = new HBox(aboutFooterLabel);
             footerWrapper.setAlignment(Pos.CENTER);
-            thanksToScrollPane.getStyleClass().addAll("transparentScrollPane");
+            thanksToScrollPane.getStyleClass().addAll("transparentAboutScrollPane");
             VBox overlayedBackgroundVBox = new VBox();
             overlayedBackgroundVBox.setStyle("-fx-background-color: linear-gradient(beige, transparent, beige);");
             aboutMaskStackPane.getChildren().addAll(thanksToScrollPane, overlayedBackgroundVBox);
@@ -844,7 +846,10 @@ public class MainFormController {
             helpPrevBtn.setId("prevBtn");
             helpStackPane.setStyle("-fx-background-color: rgba(237, 188, 0, 0.20);");
             helpStackPane.setVisible(false);
-            helpNoteTextArea.setStyle("-fx-text-alignment: center;");
+            helpNoteTextArea.getStyleClass().addAll("transparentAboutTextArea");
+
+            helpNoteTextArea.setPrefSize(300, 200);
+            helpNoteTextArea.setMinSize(300, 200);
             helpNoteTextArea.setEditable(false);
             helpPrevBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
                 @Override
@@ -1009,8 +1014,8 @@ public class MainFormController {
         }
 
         private Node getExtensionsHbox() {
-            Label extensionsLbl = new Label("Extensions: ");
-            HBox extensionsHbox = new HBox(10, extensionsLbl, jpgCheckBox, gifCheckBox, nefCheckBox, cidCheckBox);
+            extensionsLbl = new Label("Extensions: ");
+            extensionsHbox = new HBox(10, extensionsLbl, jpgCheckBox, gifCheckBox, nefCheckBox, cidCheckBox);
             extensionsHbox.setAlignment(Pos.CENTER_LEFT);
             return extensionsHbox;
         }
@@ -1286,9 +1291,10 @@ public class MainFormController {
         public void handle(ActionEvent event) {
             mainForm.helpStackPane.addEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
             if (step == Integer.MIN_VALUE) {
+                //some init code can be placed here
                 step = 0;
             }
-            showHelpContentForStep(step);
+
             if (event.getSource() instanceof Node) {
                 Node sourceNode = (Node) event.getSource();
                 if (sourceNode.getId() != null) {
@@ -1299,6 +1305,7 @@ public class MainFormController {
                         step = Math.max(0, --step);
                         mainForm.helpPrevBtn.requestFocus();
                     }
+
                 }
             } else {
                 FadeTransition ft = new FadeTransition(Duration.millis(200), mainForm.helpStackPane);
@@ -1309,28 +1316,71 @@ public class MainFormController {
                 mainForm.helpNextBtn.requestFocus();
                 ft.play();
             }
-
+            showHelpContentForCurrentStep();
 
         }
 
-        private void showHelpContentForStep(int i) {
+        private void showHelpContentForCurrentStep() {
             CubicCurveWithArrows arrow = null;
             mainForm.helpArrowsStackPane.getChildren().clear();
-            switch (i) {
+            //its not very clear way to keep messages, but its fast
+            switch (step) {
+                case 0:
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, new Point2D(20, 20), false);
+                    mainForm.helpNoteTextArea.setText("This helpful help help you to use that program.\n" +
+                            "You can close it by pressing at any place of a screen except navigate buttons.\n\n" +
+                            "Please, press the next button to discover the world");
+                    break;
                 case 1:
-                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.scanBtn, false);
-                    mainForm.helpNoteTextArea.setText("1 step=" + step);
+                    arrow = null;
+                    mainForm.helpNoteTextArea.setText("This program helps you to find corrupted images.\n" +
+                            "Just do 3 simple steps...");
                     break;
                 case 2:
-                    mainForm.helpNoteTextArea.setText("2 step=" + step);
-                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.aboutStackPane, false);
+                    mainForm.helpNoteTextArea.setText("1. Select which file types will be scanned");
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.extensionsLbl, false);
+                    break;
+                case 3:
+                    mainForm.helpNoteTextArea.setText("2. Select a folder for scan. " +
+                            "Subfolders will be scanned too");
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.selectPathBtn, false);
+                    break;
+                case 4:
+                    mainForm.helpNoteTextArea.setText("3. Press scan button\n\n" +
+                            "What`s next?...");
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.scanBtn, false);
+                    break;
+                case 5:
+                    mainForm.helpNoteTextArea.setText("After scanning you can:\n" +
+                            "- view statistic about files statuses\n" +
+                            "- view details and error information\n" +
+                            "- navigate to directory with corrupted images\n\n" +
+                            "Press next button to view the bonus function!\n");
+                    arrow = null;
+                    break;
+                case 6:
+                    mainForm.helpNoteTextArea.setText("You even can rename corrupted files.\n" +
+                            "Rename and scan reports will be stored inside " +
+                            "each subfolder with images. Total report will be " +
+                            "stored inside main directory. Corrupted files will be renamed with '.cid' extension...");
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.moveRenameBtn, false);
+                    break;
+                case 7:
+                    mainForm.helpNoteTextArea.setText("Renaming help you to save that files separately and bring " +
+                            "them to recovery master specialist or just to delete. " +
+                            "Also you favorite image viewer will not hands up " +
+                            "during render that files." +
+                            "That`s all. :)");
+                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.moveRenameBtn, false);
                     break;
                 default:
-                    mainForm.helpNoteTextArea.setText("3 def step=" + step);
+
             }
             if (arrow != null) {
                 mainForm.helpArrowsStackPane.setAlignment(arrow, Pos.TOP_LEFT);
                 mainForm.helpArrowsStackPane.getChildren().add(arrow);
+            } else {
+                mainForm.helpArrowsStackPane.getChildren().clear();
             }
         }
     }
@@ -1350,7 +1400,7 @@ public class MainFormController {
             hide();
         }
 
-        public void hide(){
+        public void hide() {
             mainForm.aboutStackPane.removeEventFilter(KeyEvent.KEY_PRESSED, hideAboutStackPaneEventHandler);
             FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.aboutStackPane);
             ft.setFromValue(1.0);
@@ -1375,10 +1425,10 @@ public class MainFormController {
     private class HideHelpEventHandler implements EventHandler<ActionEvent> {
         @Override
         public void handle(ActionEvent event) {
-               hide();
+            hide();
         }
 
-        public void hide(){
+        public void hide() {
             mainForm.helpStackPane.removeEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
             FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.helpStackPane);
             ft.setFromValue(1.0);

@@ -69,16 +69,35 @@
     -fx-background-color: rgba(147, 112, 219, 0.75);
 }
 
-.transparentScrollPane > .viewport {
+.transparentAboutScrollPane > .viewport {
     /*Java 8 bug at now*/
     -fx-background-color: transparent;
 }
 
-.transparentScrollPane {
+.transparentAboutScrollPane {
     -fx-border-width: 0;
     -fx-background-color: transparent;
     -fx-control-inner-background: transparent;
     -fx-background-insets: 0;
     -fx-vbar-policy: never;
     -fx-hbar-policy: never;
+}
+
+.transparentAboutTextArea {
+    -fx-border-color: transparent;
+    -fx-background-color: seagreen;
+    -fx-wrap-text: true;
+}
+
+.transparentAboutTextArea .content {
+    -fx-background-color: coral;
+}
+
+#nextBtn, #prevBtn {
+    -fx-border-width: 0;
+    -fx-border-radius: 0px;
+    -fx-border-width: 2px;
+    -fx-border-color: seagreen;
+    -fx-background-insets: 0;
+    -fx-background-color: coral;
 }
