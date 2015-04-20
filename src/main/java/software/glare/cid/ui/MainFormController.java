@@ -848,8 +848,8 @@ public class MainFormController {
             helpStackPane.setVisible(false);
             helpNoteTextArea.getStyleClass().addAll("transparentAboutTextArea");
 
-            helpNoteTextArea.setPrefSize(300, 200);
-            helpNoteTextArea.setMinSize(300, 200);
+            helpNoteTextArea.setPrefSize(350, 150);
+            helpNoteTextArea.setMinSize(350, 150);
             helpNoteTextArea.setEditable(false);
             helpPrevBtn.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
                 @Override
@@ -1285,10 +1285,13 @@ public class MainFormController {
     }
 
     private class ShowHelpEventHandler implements EventHandler<ActionEvent> {
+
+        public static final int STEPS_TOTAL = 7;
         private int step = Integer.MIN_VALUE;
 
         @Override
         public void handle(ActionEvent event) {
+            stage.setResizable(false);
             mainForm.helpStackPane.addEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
             if (step == Integer.MIN_VALUE) {
                 //some init code can be placed here
@@ -1299,7 +1302,7 @@ public class MainFormController {
                 Node sourceNode = (Node) event.getSource();
                 if (sourceNode.getId() != null) {
                     if (sourceNode.getId() == "nextBtn") {
-                        step++;
+                        step = Math.min(STEPS_TOTAL, ++step);
                         mainForm.helpNextBtn.requestFocus();
                     } else if (sourceNode.getId() == "prevBtn") {
                         step = Math.max(0, --step);
@@ -1362,8 +1365,9 @@ public class MainFormController {
                     mainForm.helpNoteTextArea.setText("You even can rename corrupted files.\n" +
                             "Rename and scan reports will be stored inside " +
                             "each subfolder with images. Total report will be " +
-                            "stored inside main directory. Corrupted files will be renamed with '.cid' extension...");
-                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.moveRenameBtn, false);
+                            "stored inside main directory. Corrupted files will be renamed with '.cid' extension..." +
+                            "You can find the rename button yourself after scan. It`s a quiz!");
+                    arrow = null;
                     break;
                 case 7:
                     mainForm.helpNoteTextArea.setText("Renaming help you to save that files separately and bring " +
@@ -1371,7 +1375,7 @@ public class MainFormController {
                             "Also you favorite image viewer will not hands up " +
                             "during render that files." +
                             "That`s all. :)");
-                    arrow = new CubicCurveWithArrows(mainForm.helpNoteTextArea, mainForm.moveRenameBtn, false);
+                    arrow = null;
                     break;
                 default:
 
@@ -1429,6 +1433,7 @@ public class MainFormController {
         }
 
         public void hide() {
+
             mainForm.helpStackPane.removeEventFilter(KeyEvent.KEY_PRESSED, hideHelpStackPaneEventHandler);
             FadeTransition ft = new FadeTransition(Duration.millis(100), mainForm.helpStackPane);
             ft.setFromValue(1.0);
@@ -1438,6 +1443,7 @@ public class MainFormController {
             ft.setOnFinished((e) -> {
                 mainForm.helpStackPane.setVisible(false);
             });
+            stage.setResizable(true);
         }
     }
 }

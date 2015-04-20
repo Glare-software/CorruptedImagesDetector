@@ -16,65 +16,37 @@ public class CubicCurveWithArrows extends Group {
 
     public CubicCurveWithArrows(Node from, Node to, boolean bidirectional) {
 
+        Point2D sceneFromAvg = getCenteredPoint2D(from);
 
-        Point2D localFromMin = new Point2D(
-                from.getBoundsInLocal().getMinX(),
-                from.getBoundsInLocal().getMinY()
-        );
-
-        Point2D localFromMax = new Point2D(
-                from.getBoundsInLocal().getMaxX(),
-                from.getBoundsInLocal().getMaxY()
-        );
-
-        Point2D localToMin = new Point2D(
-                to.getBoundsInLocal().getMinX(),
-                to.getBoundsInLocal().getMinY()
-        );
-
-        Point2D localToMax = new Point2D(
-                to.getBoundsInLocal().getMaxX(),
-                to.getBoundsInLocal().getMaxY()
-        );
-
-
-        Point2D sceneFromMin = from.localToScene(localFromMin);
-        Point2D sceneFromMax = from.localToScene(localFromMax);
-
-        Point2D sceneToMin = to.localToScene(localToMin);
-        Point2D sceneToMax = to.localToScene(localToMax);
-
-        Point2D sceneFromAvg = getAvgPoint2D(sceneFromMin, sceneFromMax);
-        Point2D sceneToAvg = getAvgPoint2D(sceneToMin, sceneToMax);
+        Point2D sceneToAvg = getCenteredPoint2D(to);
         CubicCurve curve = createCurve(
                 sceneFromAvg,
                 sceneToAvg
         );
 
-        double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
-        //backShape is used for absolute positioning
+        createFigure(from, bidirectional, curve);
+    }
+
+    public CubicCurveWithArrows(Node from, Point2D to, boolean bidirectional) {
+        Point2D sceneFromAvg = getCenteredPoint2D(from);
+        CubicCurve curve = createCurve(
+                sceneFromAvg,
+                to
+        );
+        createFigure(from, bidirectional, curve);
+    }
+
+    private void createFigure(Node from, boolean bidirectional, CubicCurve curve) {
         Rectangle backShape = new Rectangle(from.getScene().getWidth(), from.getScene().getHeight());
-
-        /*backShape.widthProperty().bind(new DoubleBinding() {
-            {
-                super.bind(from.boundsInLocalProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                return 0;
-            }
-        });*/
         backShape.setStyle("-fx-fill: transparent");
+        double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
         getChildren().addAll(backShape, curve, new Arrow(curve, 1f, arrowShape));
         if (bidirectional) {
             getChildren().add(new Arrow(curve, 0f, arrowShape));
         }
     }
 
-    public CubicCurveWithArrows(Node from, Point2D to, boolean bidirectional) {
-
-
+    private Point2D getCenteredPoint2D(Node from) {
         Point2D localFromMin = new Point2D(
                 from.getBoundsInLocal().getMinX(),
                 from.getBoundsInLocal().getMinY()
@@ -87,32 +59,7 @@ public class CubicCurveWithArrows extends Group {
 
         Point2D sceneFromMin = from.localToScene(localFromMin);
         Point2D sceneFromMax = from.localToScene(localFromMax);
-
-        Point2D sceneFromAvg = getAvgPoint2D(sceneFromMin, sceneFromMax);
-        CubicCurve curve = createCurve(
-                sceneFromAvg,
-                to
-        );
-
-        double[] arrowShape = new double[]{0, 0, 5, 15, -5, 15};
-        //backShape is used for absolute positioning
-        Rectangle backShape = new Rectangle(from.getScene().getWidth(), from.getScene().getHeight());
-
-        /*backShape.widthProperty().bind(new DoubleBinding() {
-            {
-                super.bind(from.boundsInLocalProperty());
-            }
-
-            @Override
-            protected double computeValue() {
-                return 0;
-            }
-        });*/
-        backShape.setStyle("-fx-fill: transparent");
-        getChildren().addAll(backShape, curve, new Arrow(curve, 1f, arrowShape));
-        if (bidirectional) {
-            getChildren().add(new Arrow(curve, 0f, arrowShape));
-        }
+        return getAvgPoint2D(sceneFromMin, sceneFromMax);
     }
 
 
@@ -134,11 +81,11 @@ public class CubicCurveWithArrows extends Group {
         curve.setEndY(to.getY());
         curve.setStroke(Color.ORANGE);
         curve.setStrokeWidth(1);
-        //curve.setStrokeLineCap(StrokeLineCap.ROUND);
         curve.setFill(Color.TRANSPARENT);
         return curve;
     }
 
+    //Thanks to dev from SO for that code!
     class Arrow extends Polygon {
 
         private float t;
@@ -225,11 +172,6 @@ public class CubicCurveWithArrows extends Group {
                             3 * Math.pow(t, 2) * c.getEndY());
             return p;
         }
-
-
     }
-
-
-
 }
 
