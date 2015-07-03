@@ -15,4 +15,4 @@ ${errfile_index + 1}. ${errfile}
 </#list>
 
 --
-Source code available at https://github.com/fdman85/BrokenImagesDetector
+Source code available at Source code available at https://github.com/Glare-software/CorruptedImagesDetector

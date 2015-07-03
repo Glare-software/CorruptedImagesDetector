@@ -13,4 +13,4 @@ See total report at ${fullReportPathAndName}
 
 
 --
-Source code available at https://github.com/fdman85/BrokenImagesDetector
+Source code available at https://github.com/Glare-software/CorruptedImagesDetector
